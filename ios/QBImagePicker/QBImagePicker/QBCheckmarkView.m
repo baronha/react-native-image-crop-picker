@@ -15,7 +15,7 @@
     [super awakeFromNib];
     
     // Set default values
-    self.borderWidth = 1.0;
+    self.borderWidth = 2.0;
     self.checkmarkLineWidth = 1.2;
     
     self.borderColor = [UIColor whiteColor];
@@ -38,17 +38,19 @@
     // Body
     [self.bodyColor setFill];
     [[UIBezierPath bezierPathWithOvalInRect:CGRectInset(self.bounds, self.borderWidth, self.borderWidth)] fill];
+//
+//    // Checkmark
+//    UIBezierPath *checkmarkPath = [UIBezierPath bezierPath];
+//    checkmarkPath.lineWidth = self.checkmarkLineWidth;
+//
+//    [checkmarkPath moveToPoint:CGPointMake(CGRectGetWidth(self.bounds) * (6.0 / 24.0), CGRectGetHeight(self.bounds) * (12.0 / 24.0))];
+//    [checkmarkPath addLineToPoint:CGPointMake(CGRectGetWidth(self.bounds) * (10.0 / 24.0), CGRectGetHeight(self.bounds) * (16.0 / 24.0))];
+//    [checkmarkPath addLineToPoint:CGPointMake(CGRectGetWidth(self.bounds) * (18.0 / 24.0), CGRectGetHeight(self.bounds) * (8.0 / 24.0))];
+//
+//    [self.checkmarkColor setStroke];
+//    [checkmarkPath stroke];
     
-    // Checkmark
-    UIBezierPath *checkmarkPath = [UIBezierPath bezierPath];
-    checkmarkPath.lineWidth = self.checkmarkLineWidth;
-    
-    [checkmarkPath moveToPoint:CGPointMake(CGRectGetWidth(self.bounds) * (6.0 / 24.0), CGRectGetHeight(self.bounds) * (12.0 / 24.0))];
-    [checkmarkPath addLineToPoint:CGPointMake(CGRectGetWidth(self.bounds) * (10.0 / 24.0), CGRectGetHeight(self.bounds) * (16.0 / 24.0))];
-    [checkmarkPath addLineToPoint:CGPointMake(CGRectGetWidth(self.bounds) * (18.0 / 24.0), CGRectGetHeight(self.bounds) * (8.0 / 24.0))];
-    
-    [self.checkmarkColor setStroke];
-    [checkmarkPath stroke];
+    [self.badge text];
 }
 
 @end

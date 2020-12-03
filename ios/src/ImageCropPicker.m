@@ -71,7 +71,8 @@ RCT_EXPORT_MODULE();
             @"forceJpg": @NO,
             @"sortOrder": @"none",
             @"cropperCancelText": @"Cancel",
-            @"cropperChooseText": @"Choose"
+            @"cropperChooseText": @"Choose",
+            @"mediaExist": @[],
         };
         self.compression = [[Compression alloc] init];
     }

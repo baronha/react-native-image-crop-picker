@@ -36,7 +36,7 @@
                                          @(PHAssetCollectionSubtypeSmartAlbumBursts)
                                          ];
         self.minimumNumberOfSelection = 1;
-        self.numberOfColumnsInPortrait = 4;
+        self.numberOfColumnsInPortrait = 3;
         self.numberOfColumnsInLandscape = 7;
         
         _selectedAssets = [NSMutableOrderedSet orderedSet];

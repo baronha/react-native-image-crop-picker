@@ -583,7 +583,9 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
     NSMutableOrderedSet *selectedAssets = imagePickerController.selectedAssets;
 
     PHAsset *asset = self.fetchResult[indexPath.item];
-
+    
+    NSLog(@"indexPath: %@", indexPath);
+    
     if (imagePickerController.allowsMultipleSelection) {
         if ([self isAutoDeselectEnabled] && selectedAssets.count > 0) {
             // Remove previous selected asset from set
@@ -603,6 +605,7 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
         [self updateDoneButtonState];
 
         if (imagePickerController.showsNumberOfSelectedAssets) {
+            
             [self updateSelectionInfo];
 
             if (selectedAssets.count == 1) {
