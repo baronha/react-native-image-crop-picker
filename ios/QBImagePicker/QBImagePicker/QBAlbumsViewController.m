@@ -28,10 +28,8 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
 
 @interface QBAlbumsViewController () <PHPhotoLibraryChangeObserver>
 
-@property (nonatomic, strong) IBOutlet UIBarButtonItem *doneButton;
 
 @property (nonatomic, copy) NSArray *fetchResults;
-@property (nonatomic, copy) NSArray *assetCollections;
 
 @end
 
@@ -61,15 +59,7 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
     // Configure navigation item
     self.navigationItem.title = NSLocalizedStringFromTableInBundle(@"albums.title", @"QBImagePicker", self.imagePickerController.assetBundle, nil);
     self.navigationItem.prompt = self.imagePickerController.prompt;
-    
-    // Show/hide 'Done' button
-    if (self.imagePickerController.allowsMultipleSelection) {
-        [self.navigationItem setRightBarButtonItem:self.doneButton animated:NO];
-    } else {
-        [self.navigationItem setRightBarButtonItem:nil animated:NO];
-    }
-    
-    [self updateControlState];
+
     [self updateSelectionInfo];
 }
 
@@ -87,6 +77,7 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
     QBAssetsViewController *assetsViewController = segue.destinationViewController;
     assetsViewController.imagePickerController = self.imagePickerController;
     assetsViewController.assetCollection = self.assetCollections[self.tableView.indexPathForSelectedRow.row];
+    NSLog(@"row: %@",self.assetCollections[self.tableView.indexPathForSelectedRow.row]);
 }
 
 
@@ -129,7 +120,7 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
 - (void)updateSelectionInfo
 {
     NSMutableOrderedSet *selectedAssets = self.imagePickerController.selectedAssets;
-    
+    NSLog(@"selected: %@",  self.imagePickerController);
     if (selectedAssets.count > 0) {
         NSBundle *bundle = self.imagePickerController.assetBundle;
         NSString *format;
@@ -252,11 +243,6 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
     }
     
     return NO;
-}
-
-- (void)updateControlState
-{
-    self.doneButton.enabled = [self isMinimumSelectionLimitFulfilled];
 }
 
 

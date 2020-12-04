@@ -7,6 +7,7 @@
 //
 
 #import "QBAssetsViewController.h"
+#import "QBAlbumsViewController.h"
 #import <Photos/Photos.h>
 
 // Views
@@ -56,7 +57,9 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
 
 @interface QBAssetsViewController () <PHPhotoLibraryChangeObserver, UICollectionViewDelegateFlowLayout>
 
-@property (nonatomic, strong) IBOutlet UIBarButtonItem *doneButton;
+@property (nonatomic, strong) IBOutlet UIButton *doneButton;
+@property (nonatomic, strong) IBOutlet UIButton *backButton;
+@property (nonatomic, strong) IBOutlet UIButton *chooseAlbum;
 
 @property (nonatomic, strong) PHFetchResult *fetchResult;
 
@@ -84,46 +87,18 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
 - (void)viewWillAppear:(BOOL)animated
 {
     [super viewWillAppear:animated];
-
-    // Configure navigation item
-    self.navigationItem.title = self.assetCollection.localizedTitle;
+//    self.navigationItem.title = @"hahaha";
     self.navigationItem.prompt = self.imagePickerController.prompt;
+    
+    
 
     // Configure collection view
     self.collectionView.allowsMultipleSelection = self.imagePickerController.allowsMultipleSelection;
-
-    // Show/hide 'Done' button
-    if (self.imagePickerController.allowsMultipleSelection) {
-        [self.navigationItem setRightBarButtonItem:self.doneButton animated:NO];
-    } else {
-        [self.navigationItem setRightBarButtonItem:nil animated:NO];
-    }
-
-    [self updateDoneButtonState];
     [self updateSelectionInfo];
+    
+    
     [self.collectionView reloadData];
-
-    // Scroll to bottom
-    if (self.fetchResult.count > 0 && !self.disableScrollToBottom) {
-        NSIndexPath *indexPath = [NSIndexPath indexPathForItem:(self.fetchResult.count - 1) inSection:0];
-        [self.collectionView scrollToItemAtIndexPath:indexPath atScrollPosition:UICollectionViewScrollPositionTop animated:NO];
-    }
-}
-
-- (void)viewWillDisappear:(BOOL)animated
-{
-    [super viewWillDisappear:animated];
-
-    self.disableScrollToBottom = YES;
-}
-
-- (void)viewDidAppear:(BOOL)animated
-{
-    [super viewDidAppear:animated];
-
-    self.disableScrollToBottom = NO;
-
-    [self updateCachedAssets];
+    
 }
 
 - (void)viewWillTransitionToSize:(CGSize)size withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator
@@ -183,6 +158,14 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
     }
 }
 
+- (IBAction)back:(id)sender
+{
+    if ([self.imagePickerController.delegate respondsToSelector:@selector(qb_imagePickerControllerDidCancel:)]) {
+        [self.imagePickerController.delegate qb_imagePickerControllerDidCancel:self.imagePickerController];
+    }
+}
+
+
 
 #pragma mark - Toolbar
 
@@ -200,6 +183,7 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
     NSDictionary *attributes = @{ NSForegroundColorAttributeName: labelColor };
     UIBarButtonItem *infoButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"" style:UIBarButtonItemStylePlain target:nil action:NULL];
     infoButtonItem.enabled = NO;
+    infoButtonItem.title = @"Xong";
     [infoButtonItem setTitleTextAttributes:attributes forState:UIControlStateNormal];
     [infoButtonItem setTitleTextAttributes:attributes forState:UIControlStateDisabled];
 
@@ -233,6 +217,8 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
 {
     if (self.assetCollection) {
         PHFetchOptions *options = [PHFetchOptions new];
+        
+        NSLog(@"options: %@", options);
 
         switch (self.imagePickerController.mediaType) {
             case QBImagePickerMediaTypeImage:
@@ -288,10 +274,10 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
     return NO;
 }
 
-- (void)updateDoneButtonState
-{
-    self.doneButton.enabled = [self isMinimumSelectionLimitFulfilled];
-}
+//- (void)updateDoneButtonState
+//{
+//    self.doneButton.enabled = [self isMinimumSelectionLimitFulfilled];
+//}
 
 
 #pragma mark - Asset Caching
@@ -583,9 +569,7 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
     NSMutableOrderedSet *selectedAssets = imagePickerController.selectedAssets;
 
     PHAsset *asset = self.fetchResult[indexPath.item];
-    
-    NSLog(@"indexPath: %@", indexPath);
-    
+        
     if (imagePickerController.allowsMultipleSelection) {
         if ([self isAutoDeselectEnabled] && selectedAssets.count > 0) {
             // Remove previous selected asset from set
@@ -602,7 +586,7 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
 
         self.lastSelectedItemIndexPath = indexPath;
 
-        [self updateDoneButtonState];
+//        [self updateDoneButtonState];
 
         if (imagePickerController.showsNumberOfSelectedAssets) {
             
@@ -640,7 +624,7 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
 
     self.lastSelectedItemIndexPath = nil;
 
-    [self updateDoneButtonState];
+//    [self updateDoneButtonState];
 
     if (imagePickerController.showsNumberOfSelectedAssets) {
         [self updateSelectionInfo];

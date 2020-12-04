@@ -13,5 +13,6 @@
 @interface QBAlbumsViewController : UITableViewController
 
 @property (nonatomic, weak) QBImagePickerController *imagePickerController;
+@property (nonatomic, copy) NSArray *assetCollections;
 
 @end

@@ -28,13 +28,17 @@
     
     if (self) {
         // Set default values
-        self.assetCollectionSubtypes = @[
-                                         @(PHAssetCollectionSubtypeSmartAlbumUserLibrary),
-                                         @(PHAssetCollectionSubtypeAlbumMyPhotoStream),
-                                         @(PHAssetCollectionSubtypeSmartAlbumPanoramas),
-                                         @(PHAssetCollectionSubtypeSmartAlbumVideos),
-                                         @(PHAssetCollectionSubtypeSmartAlbumBursts)
-                                         ];
+        if (@available(iOS 9, *)) {
+            self.assetCollectionSubtypes = @[
+                @(PHAssetCollectionSubtypeSmartAlbumUserLibrary),
+                @(PHAssetCollectionSubtypeSmartAlbumVideos),
+                @(PHAssetCollectionSubtypeSmartAlbumPanoramas),
+                @(PHAssetCollectionSubtypeSmartAlbumFavorites),
+                @(PHAssetCollectionSubtypeSmartAlbumScreenshots),
+            ];
+        } else {
+            // Fallback on earlier versions
+        }
         self.minimumNumberOfSelection = 1;
         self.numberOfColumnsInPortrait = 3;
         self.numberOfColumnsInLandscape = 7;

@@ -13,7 +13,7 @@
             <objects>
                 <tableViewController storyboardIdentifier="QBAlbumsViewController" id="QL5-wR-LYt" customClass="QBAlbumsViewController" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="86" sectionHeaderHeight="22" sectionFooterHeight="22" id="66K-TS-Yoc">
-                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="842"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <prototypes>
@@ -89,7 +89,6 @@
                                     <outlet property="imageView2" destination="7bp-En-8qW" id="2ol-my-8hB"/>
                                     <outlet property="imageView3" destination="aA6-Ye-jVF" id="jvN-vK-7sr"/>
                                     <outlet property="titleLabel" destination="SeB-hL-cJJ" id="KAO-l9-FAQ"/>
-                                    <segue destination="QiH-NZ-ZGN" kind="show" id="2ft-L1-HaB"/>
                                 </connections>
                             </tableViewCell>
                         </prototypes>
@@ -104,19 +103,11 @@
                                 <action selector="cancel:" destination="QL5-wR-LYt" id="l9K-7e-2qt"/>
                             </connections>
                         </barButtonItem>
-                        <barButtonItem key="rightBarButtonItem" systemItem="done" id="laG-jk-Ma2">
-                            <connections>
-                                <action selector="done:" destination="QL5-wR-LYt" id="Try-7j-DzS"/>
-                            </connections>
-                        </barButtonItem>
                     </navigationItem>
-                    <connections>
-                        <outlet property="doneButton" destination="laG-jk-Ma2" id="CV6-AR-B90"/>
-                    </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Qu9-YY-dvn" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="986" y="851"/>
+            <point key="canvasLocation" x="967" y="1575"/>
         </scene>
         <!--Album Title-->
         <scene sceneID="ozY-oO-5JA">
@@ -264,19 +255,24 @@
                         </connections>
                     </collectionView>
                     <navigationItem key="navigationItem" title="Album Title" id="wKf-eb-U1x">
-                        <barButtonItem key="rightBarButtonItem" systemItem="done" id="nai-ZV-lR8">
+                        <barButtonItem key="leftBarButtonItem" style="plain" systemItem="cancel" id="3n3-hG-h8T">
                             <connections>
-                                <action selector="done:" destination="QiH-NZ-ZGN" id="RYV-Ik-8ry"/>
+                                <action selector="back:" destination="QiH-NZ-ZGN" id="3L3-BR-x9u"/>
+                            </connections>
+                        </barButtonItem>
+                        <barButtonItem key="rightBarButtonItem" title="Chọn Albums" id="nai-ZV-lR8">
+                            <color key="tintColor" systemColor="labelColor"/>
+                            <connections>
+                                <segue destination="QL5-wR-LYt" kind="popoverPresentation" popoverAnchorBarButtonItem="nai-ZV-lR8" id="b0E-JO-u6e">
+                                    <popoverArrowDirection key="popoverArrowDirection" up="YES" down="YES" left="YES" right="YES"/>
+                                </segue>
                             </connections>
                         </barButtonItem>
                     </navigationItem>
-                    <connections>
-                        <outlet property="doneButton" destination="nai-ZV-lR8" id="lxY-18-MpF"/>
-                    </connections>
                 </collectionViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="qBb-2Q-SxP" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1814" y="852"/>
+            <point key="canvasLocation" x="1767" y="852"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="TBV-v4-1AQ">
@@ -291,7 +287,7 @@
                         <autoresizingMask key="autoresizingMask"/>
                     </toolbar>
                     <connections>
-                        <segue destination="QL5-wR-LYt" kind="relationship" relationship="rootViewController" id="fhp-Wj-h79"/>
+                        <segue destination="QiH-NZ-ZGN" kind="relationship" relationship="rootViewController" id="qMk-dB-V9E"/>
                     </connections>
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Ag3-Vu-ohc" userLabel="First Responder" sceneMemberID="firstResponder"/>
