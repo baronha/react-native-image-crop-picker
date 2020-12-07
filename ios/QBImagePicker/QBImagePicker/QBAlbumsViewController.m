@@ -35,6 +35,16 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
 
 @implementation QBAlbumsViewController
 
+- (instancetype)init
+{
+    self = [super init];
+    
+    if (self) {
+        NSLog(@"init");
+    }
+    return self;
+}
+
 - (void)viewDidLoad
 {
     [super viewDidLoad];
@@ -77,7 +87,7 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
     QBAssetsViewController *assetsViewController = segue.destinationViewController;
     assetsViewController.imagePickerController = self.imagePickerController;
     assetsViewController.assetCollection = self.assetCollections[self.tableView.indexPathForSelectedRow.row];
-    NSLog(@"row: %@",self.assetCollections[self.tableView.indexPathForSelectedRow.row]);
+//    NSLog(@"row: %@",self.assetCollections[self.tableView.indexPathForSelectedRow.row]);
 }
 
 
@@ -142,6 +152,7 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
 
 - (void)updateAssetCollections
 {
+    NSLog(@"UPDATE");
     // Filter albums
     NSArray *assetCollectionSubtypes = self.imagePickerController.assetCollectionSubtypes;
     NSMutableDictionary *smartAlbums = [NSMutableDictionary dictionaryWithCapacity:assetCollectionSubtypes.count];

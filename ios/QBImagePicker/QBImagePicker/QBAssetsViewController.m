@@ -44,7 +44,7 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
 {
     NSArray *allLayoutAttributes = [self.collectionViewLayout layoutAttributesForElementsInRect:rect];
     if (allLayoutAttributes.count == 0) { return nil; }
-
+    
     NSMutableArray *indexPaths = [NSMutableArray arrayWithCapacity:allLayoutAttributes.count];
     for (UICollectionViewLayoutAttributes *layoutAttributes in allLayoutAttributes) {
         NSIndexPath *indexPath = layoutAttributes.indexPath;
@@ -59,7 +59,8 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
 
 @property (nonatomic, strong) IBOutlet UIButton *doneButton;
 @property (nonatomic, strong) IBOutlet UIButton *backButton;
-@property (nonatomic, strong) IBOutlet UIButton *chooseAlbum;
+
+@property (nonatomic, strong) NSString *albumTitle;
 
 @property (nonatomic, strong) PHFetchResult *fetchResult;
 
@@ -76,10 +77,11 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-
+    
+    [self updateFetchRequest];
     [self setUpToolbarItems];
     [self resetCachedAssets];
-
+    
     // Register observer
     [[PHPhotoLibrary sharedPhotoLibrary] registerChangeObserver:self];
 }
@@ -87,28 +89,21 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
 - (void)viewWillAppear:(BOOL)animated
 {
     [super viewWillAppear:animated];
-//    self.navigationItem.title = @"hahaha";
-    self.navigationItem.prompt = self.imagePickerController.prompt;
-    
-    
-
     // Configure collection view
+    [self setUpNavigationBar];
     self.collectionView.allowsMultipleSelection = self.imagePickerController.allowsMultipleSelection;
     [self updateSelectionInfo];
-    
-    
     [self.collectionView reloadData];
-    
 }
 
 - (void)viewWillTransitionToSize:(CGSize)size withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator
 {
     // Save indexPath for the last item
     NSIndexPath *indexPath = [[self.collectionView indexPathsForVisibleItems] lastObject];
-
+    
     // Update layout
     [self.collectionViewLayout invalidateLayout];
-
+    
     // Restore scroll position
     [coordinator animateAlongsideTransition:nil completion:^(id<UIViewControllerTransitionCoordinatorContext> context) {
         [self.collectionView scrollToItemAtIndexPath:indexPath atScrollPosition:UICollectionViewScrollPositionBottom animated:NO];
@@ -127,7 +122,7 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
 - (void)setAssetCollection:(PHAssetCollection *)assetCollection
 {
     _assetCollection = assetCollection;
-
+    
     [self updateFetchRequest];
     [self.collectionView reloadData];
 }
@@ -137,7 +132,7 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
     if (_imageManager == nil) {
         _imageManager = [PHCachingImageManager new];
     }
-
+    
     return _imageManager;
 }
 
@@ -154,18 +149,101 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
 {
     if ([self.imagePickerController.delegate respondsToSelector:@selector(qb_imagePickerController:didFinishPickingAssets:)]) {
         [self.imagePickerController.delegate qb_imagePickerController:self.imagePickerController
-                                             didFinishPickingAssets:self.imagePickerController.selectedAssets.array];
+                                               didFinishPickingAssets:self.imagePickerController.selectedAssets.array];
     }
 }
 
-- (IBAction)back:(id)sender
+- (IBAction)back:()sender
 {
     if ([self.imagePickerController.delegate respondsToSelector:@selector(qb_imagePickerControllerDidCancel:)]) {
         [self.imagePickerController.delegate qb_imagePickerControllerDidCancel:self.imagePickerController];
     }
 }
 
+- (void)onBack:(UITapGestureRecognizer *)tapGesture {
+    if ([self.imagePickerController.delegate respondsToSelector:@selector(qb_imagePickerControllerDidCancel:)]) {
+        [self.imagePickerController.delegate qb_imagePickerControllerDidCancel:self.imagePickerController];
+    }
+}
 
+#pragma mark - TopNavigator
+
+-(void)setUpNavigationBar
+{
+    CGFloat safeAreaViewTop =  UIApplication.sharedApplication.statusBarFrame.size.height;
+    
+    UIView *safeAreaView = [[UIView alloc] initWithFrame:CGRectMake(0,0, self.view.frame.size.width, safeAreaViewTop)];
+    
+    safeAreaView.backgroundColor = [UIColor whiteColor];
+    
+    
+    UINavigationBar* navigationbar = [[UINavigationBar alloc] initWithFrame:CGRectMake(0,safeAreaViewTop, self.view.frame.size.width, 0)];
+    
+    //barStyle
+    navigationbar.tintColor = [UIColor whiteColor];
+    navigationbar.barTintColor = [UIColor whiteColor];
+    navigationbar.backgroundColor = [UIColor whiteColor];
+    
+    UINavigationItem* navigationItem = [[UINavigationItem alloc] init];
+    _albumTitle = @"Hình ảnh";
+
+
+
+    if (@available(iOS 9.0, *)) {
+        //handle subTitle
+        UILabel *title = [[UILabel alloc]init];
+        UILabel *subtitle = [[UILabel alloc]init];
+
+        [title setFont:[UIFont systemFontOfSize:12]];
+        [title setTextColor:[UIColor whiteColor]];
+        [title setFont:[UIFont systemFontOfSize:17 weight:UIFontWeightSemibold]];
+        [title sizeToFit];
+        title.text = _albumTitle;
+        title.textColor = [UIColor blackColor];
+
+        [subtitle setTextColor:[UIColor whiteColor]];
+        [subtitle setFont:[UIFont systemFontOfSize:12]];
+        [subtitle setTextAlignment:NSTextAlignmentCenter];
+        [subtitle sizeToFit];
+        subtitle.text = @"Thay đổi albums";
+        subtitle.textColor = [UIColor grayColor];
+        
+        //stackView
+        UIStackView *stackVw = [[UIStackView alloc]initWithArrangedSubviews:@[title,subtitle]];
+        stackVw.distribution = UIStackViewDistributionEqualCentering;
+        stackVw.axis = UILayoutConstraintAxisVertical;
+        stackVw.alignment = UIStackViewAlignmentCenter;
+        [stackVw setFrame:CGRectMake(0, 0, MAX(title.frame.size.width, subtitle.frame.size.width), 0)];
+        stackVw.userInteractionEnabled = true;
+        UITapGestureRecognizer *tapGesture =
+              [[UITapGestureRecognizer alloc] initWithTarget:self
+                                                      action:@selector(onBack:)];
+        [stackVw addGestureRecognizer:tapGesture];
+
+        navigationItem.titleView = stackVw;
+    }else{
+        navigationItem.title = _albumTitle;
+    }
+
+
+    //cancelButton
+    UIBarButtonItem *cancelItem = [[UIBarButtonItem alloc] initWithTitle:@"Thoát"
+                                                                   style:UIBarButtonItemStylePlain
+                                                                  target:self.backButton
+                                                                  action:nil];
+    
+    cancelItem.tintColor = [UIColor systemPinkColor];
+    
+    navigationItem.leftBarButtonItem = cancelItem;
+    
+    navigationbar.items = [NSArray arrayWithObjects: navigationItem,nil];
+    [navigationbar setItems:@[navigationItem]];
+    
+    [self.collectionView setContentInset: UIEdgeInsetsMake(safeAreaViewTop, 0, 0, 0)];
+    [self.view addSubview:safeAreaView];
+    [self.view insertSubview:navigationbar atIndex:2];
+    
+}
 
 #pragma mark - Toolbar
 
@@ -174,7 +252,7 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
     // Space
     UIBarButtonItem *leftSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:NULL];
     UIBarButtonItem *rightSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:NULL];
-
+    
     // Info label
     UIColor *labelColor = [UIColor blackColor];
     if (@available(iOS 13.0, *)) {
@@ -186,14 +264,14 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
     infoButtonItem.title = @"Xong";
     [infoButtonItem setTitleTextAttributes:attributes forState:UIControlStateNormal];
     [infoButtonItem setTitleTextAttributes:attributes forState:UIControlStateDisabled];
-
+    
     self.toolbarItems = @[leftSpace, infoButtonItem, rightSpace];
 }
 
 - (void)updateSelectionInfo
 {
     NSMutableOrderedSet *selectedAssets = self.imagePickerController.selectedAssets;
-
+    
     if (selectedAssets.count > 0) {
         NSBundle *bundle = self.imagePickerController.assetBundle;
         NSString *format;
@@ -202,7 +280,7 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
         } else {
             format = NSLocalizedStringFromTableInBundle(@"assets.toolbar.item-selected", @"QBImagePicker", bundle, nil);
         }
-
+        
         NSString *title = [NSString stringWithFormat:format, selectedAssets.count];
         [(UIBarButtonItem *)self.toolbarItems[1] setTitle:title];
     } else {
@@ -215,35 +293,37 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
 
 - (void)updateFetchRequest
 {
+    PHFetchOptions *options = [PHFetchOptions new];
     if (self.assetCollection) {
-        PHFetchOptions *options = [PHFetchOptions new];
-        
-        NSLog(@"options: %@", options);
-
         switch (self.imagePickerController.mediaType) {
             case QBImagePickerMediaTypeImage:
                 options.predicate = [NSPredicate predicateWithFormat:@"mediaType == %ld", PHAssetMediaTypeImage];
                 break;
-
+                
             case QBImagePickerMediaTypeVideo:
                 options.predicate = [NSPredicate predicateWithFormat:@"mediaType == %ld", PHAssetMediaTypeVideo];
                 break;
-
+                
             default:
                 break;
         }
-
-
+        
+        
         if ([self.imagePickerController.sortOrder isEqualToString:@"asc"]) {
             options.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"creationDate" ascending: YES]];
         }
-
+        
         if ([self.imagePickerController.sortOrder isEqualToString:@"desc"]) {
             options.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"creationDate" ascending: NO]];
         }
-
+        //
+        //        NSLog(@"assetCollection: %@", self.assetCollection);
+        //
+        //        NSLog(@"fetchResult: %@", [PHAsset fetchAssetsInAssetCollection:self.assetCollection options:options]);
+        
+        
         self.fetchResult = [PHAsset fetchAssetsInAssetCollection:self.assetCollection options:options];
-
+        
         if ([self isAutoDeselectEnabled] && self.imagePickerController.selectedAssets.count > 0) {
             // Get index of previous selected asset
             PHAsset *asset = [self.imagePickerController.selectedAssets firstObject];
@@ -251,7 +331,9 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
             self.lastSelectedItemIndexPath = [NSIndexPath indexPathForItem:assetIndex inSection:0];
         }
     } else {
-        self.fetchResult = nil;
+        options.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"creationDate" ascending: NO]];
+        PHFetchResult *result = [PHAsset fetchAssetsWithOptions:options];
+        self.fetchResult = [result copy];
     }
 }
 
@@ -260,17 +342,17 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
 
 - (BOOL)isMinimumSelectionLimitFulfilled
 {
-   return (self.imagePickerController.minimumNumberOfSelection <= self.imagePickerController.selectedAssets.count);
+    return (self.imagePickerController.minimumNumberOfSelection <= self.imagePickerController.selectedAssets.count);
 }
 
 - (BOOL)isMaximumSelectionLimitReached
 {
     NSUInteger minimumNumberOfSelection = MAX(1, self.imagePickerController.minimumNumberOfSelection);
-
+    
     if (minimumNumberOfSelection <= self.imagePickerController.maximumNumberOfSelection) {
         return (self.imagePickerController.maximumNumberOfSelection <= self.imagePickerController.selectedAssets.count);
     }
-
+    
     return NO;
 }
 
@@ -292,19 +374,19 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
 {
     BOOL isViewVisible = [self isViewLoaded] && self.view.window != nil;
     if (!isViewVisible) { return; }
-
+    
     // The preheat window is twice the height of the visible rect
     CGRect preheatRect = self.collectionView.bounds;
     preheatRect = CGRectInset(preheatRect, 0.0, -0.5 * CGRectGetHeight(preheatRect));
-
+    
     // If scrolled by a "reasonable" amount...
     CGFloat delta = ABS(CGRectGetMidY(preheatRect) - CGRectGetMidY(self.previousPreheatRect));
-
+    
     if (delta > CGRectGetHeight(self.collectionView.bounds) / 3.0) {
         // Compute the assets to start caching and to stop caching
         NSMutableArray *addedIndexPaths = [NSMutableArray array];
         NSMutableArray *removedIndexPaths = [NSMutableArray array];
-
+        
         [self computeDifferenceBetweenRect:self.previousPreheatRect andRect:preheatRect addedHandler:^(CGRect addedRect) {
             NSArray *indexPaths = [self.collectionView qb_indexPathsForElementsInRect:addedRect];
             [addedIndexPaths addObjectsFromArray:indexPaths];
@@ -312,13 +394,13 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
             NSArray *indexPaths = [self.collectionView qb_indexPathsForElementsInRect:removedRect];
             [removedIndexPaths addObjectsFromArray:indexPaths];
         }];
-
+        
         NSArray *assetsToStartCaching = [self assetsAtIndexPaths:addedIndexPaths];
         NSArray *assetsToStopCaching = [self assetsAtIndexPaths:removedIndexPaths];
-
+        
         CGSize itemSize = [(UICollectionViewFlowLayout *)self.collectionViewLayout itemSize];
         CGSize targetSize = CGSizeScale(itemSize, [[UIScreen mainScreen] scale]);
-
+        
         [self.imageManager startCachingImagesForAssets:assetsToStartCaching
                                             targetSize:targetSize
                                            contentMode:PHImageContentModeAspectFill
@@ -327,7 +409,7 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
                                            targetSize:targetSize
                                           contentMode:PHImageContentModeAspectFill
                                               options:nil];
-
+        
         self.previousPreheatRect = preheatRect;
     }
 }
@@ -339,7 +421,7 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
         CGFloat oldMinY = CGRectGetMinY(oldRect);
         CGFloat newMaxY = CGRectGetMaxY(newRect);
         CGFloat newMinY = CGRectGetMinY(newRect);
-
+        
         if (newMaxY > oldMaxY) {
             CGRect rectToAdd = CGRectMake(newRect.origin.x, oldMaxY, newRect.size.width, (newMaxY - oldMaxY));
             addedHandler(rectToAdd);
@@ -365,7 +447,7 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
 - (NSArray *)assetsAtIndexPaths:(NSArray *)indexPaths
 {
     if (indexPaths.count == 0) { return nil; }
-
+    
     NSMutableArray *assets = [NSMutableArray arrayWithCapacity:indexPaths.count];
     for (NSIndexPath *indexPath in indexPaths) {
         if (indexPath.item < self.fetchResult.count) {
@@ -383,11 +465,11 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
 {
     dispatch_async(dispatch_get_main_queue(), ^{
         PHFetchResultChangeDetails *collectionChanges = [changeInstance changeDetailsForFetchResult:self.fetchResult];
-
+        
         if (collectionChanges) {
             // Get the new fetch result
             self.fetchResult = [collectionChanges fetchResultAfterChanges];
-
+            
             if (![collectionChanges hasIncrementalChanges] || [collectionChanges hasMoves]) {
                 // We need to reload all if the incremental diffs are not available
                 [self.collectionView reloadData];
@@ -398,19 +480,19 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
                     if ([removedIndexes count]) {
                         [self.collectionView deleteItemsAtIndexPaths:[removedIndexes qb_indexPathsFromIndexesWithSection:0]];
                     }
-
+                    
                     NSIndexSet *insertedIndexes = [collectionChanges insertedIndexes];
                     if ([insertedIndexes count]) {
                         [self.collectionView insertItemsAtIndexPaths:[insertedIndexes qb_indexPathsFromIndexesWithSection:0]];
                     }
-
+                    
                     NSIndexSet *changedIndexes = [collectionChanges changedIndexes];
                     if ([changedIndexes count]) {
                         [self.collectionView reloadItemsAtIndexPaths:[changedIndexes qb_indexPathsFromIndexesWithSection:0]];
                     }
                 } completion:NULL];
             }
-
+            
             [self resetCachedAssets];
         }
     });
@@ -442,30 +524,30 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
     QBAssetCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:@"AssetCell" forIndexPath:indexPath];
     cell.tag = indexPath.item;
     cell.showsOverlayViewWhenSelected = self.imagePickerController.allowsMultipleSelection;
-
+    
     // Image
     PHAsset *asset = self.fetchResult[indexPath.item];
     CGSize itemSize = [(UICollectionViewFlowLayout *)collectionView.collectionViewLayout itemSize];
     CGSize targetSize = CGSizeScale(itemSize, [[UIScreen mainScreen] scale]);
-
+    
     [self.imageManager requestImageForAsset:asset
                                  targetSize:targetSize
                                 contentMode:PHImageContentModeAspectFill
                                     options:nil
                               resultHandler:^(UIImage *result, NSDictionary *info) {
-                                  if (cell.tag == indexPath.item) {
-                                      cell.imageView.image = result;
-                                  }
-                              }];
-
+        if (cell.tag == indexPath.item) {
+            cell.imageView.image = result;
+        }
+    }];
+    
     // Video indicator
     if (asset.mediaType == PHAssetMediaTypeVideo) {
         cell.videoIndicatorView.hidden = NO;
-
+        
         NSInteger minutes = (NSInteger)(asset.duration / 60.0);
         NSInteger seconds = (NSInteger)ceil(asset.duration - 60.0 * (double)minutes);
         cell.videoIndicatorView.timeLabel.text = [NSString stringWithFormat:@"%02ld:%02ld", (long)minutes, (long)seconds];
-
+        
         if (asset.mediaSubtypes & PHAssetMediaSubtypeVideoHighFrameRate) {
             cell.videoIndicatorView.videoIcon.hidden = YES;
             cell.videoIndicatorView.slomoIcon.hidden = NO;
@@ -477,13 +559,13 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
     } else {
         cell.videoIndicatorView.hidden = YES;
     }
-
+    
     // Selection state
     if ([self.imagePickerController.selectedAssets containsObject:asset]) {
         [cell setSelected:YES];
         [collectionView selectItemAtIndexPath:indexPath animated:NO scrollPosition:UICollectionViewScrollPositionNone];
     }
-
+    
     return cell;
 }
 
@@ -493,14 +575,14 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
         UICollectionReusableView *footerView = [collectionView dequeueReusableSupplementaryViewOfKind:UICollectionElementKindSectionFooter
                                                                                   withReuseIdentifier:@"FooterView"
                                                                                          forIndexPath:indexPath];
-
+        
         // Number of assets
         UILabel *label = (UILabel *)[footerView viewWithTag:1];
-
+        
         NSBundle *bundle = self.imagePickerController.assetBundle;
         NSUInteger numberOfPhotos = [self.fetchResult countOfAssetsWithMediaType:PHAssetMediaTypeImage];
         NSUInteger numberOfVideos = [self.fetchResult countOfAssetsWithMediaType:PHAssetMediaTypeVideo];
-
+        
         switch (self.imagePickerController.mediaType) {
             case QBImagePickerMediaTypeAny:
             {
@@ -516,33 +598,33 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
                 } else {
                     format = NSLocalizedStringFromTableInBundle(@"assets.footer.photos-and-videos", @"QBImagePicker", bundle, nil);
                 }
-
+                
                 label.text = [NSString stringWithFormat:format, numberOfPhotos, numberOfVideos];
             }
                 break;
-
+                
             case QBImagePickerMediaTypeImage:
             {
                 NSString *key = (numberOfPhotos == 1) ? @"assets.footer.photo" : @"assets.footer.photos";
                 NSString *format = NSLocalizedStringFromTableInBundle(key, @"QBImagePicker", bundle, nil);
-
+                
                 label.text = [NSString stringWithFormat:format, numberOfPhotos];
             }
                 break;
-
+                
             case QBImagePickerMediaTypeVideo:
             {
                 NSString *key = (numberOfVideos == 1) ? @"assets.footer.video" : @"assets.footer.videos";
                 NSString *format = NSLocalizedStringFromTableInBundle(key, @"QBImagePicker", bundle, nil);
-
+                
                 label.text = [NSString stringWithFormat:format, numberOfVideos];
             }
                 break;
         }
-
+        
         return footerView;
     }
-
+    
     return nil;
 }
 
@@ -555,11 +637,11 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
         PHAsset *asset = self.fetchResult[indexPath.item];
         return [self.imagePickerController.delegate qb_imagePickerController:self.imagePickerController shouldSelectAsset:asset];
     }
-
+    
     if ([self isAutoDeselectEnabled]) {
         return YES;
     }
-
+    
     return ![self isMaximumSelectionLimitReached];
 }
 
@@ -567,31 +649,31 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
 {
     QBImagePickerController *imagePickerController = self.imagePickerController;
     NSMutableOrderedSet *selectedAssets = imagePickerController.selectedAssets;
-
+    
     PHAsset *asset = self.fetchResult[indexPath.item];
-        
+    
     if (imagePickerController.allowsMultipleSelection) {
         if ([self isAutoDeselectEnabled] && selectedAssets.count > 0) {
             // Remove previous selected asset from set
             [selectedAssets removeObjectAtIndex:0];
-
+            
             // Deselect previous selected asset
             if (self.lastSelectedItemIndexPath) {
                 [collectionView deselectItemAtIndexPath:self.lastSelectedItemIndexPath animated:NO];
             }
         }
-
+        
         // Add asset to set
         [selectedAssets addObject:asset];
-
+        
         self.lastSelectedItemIndexPath = indexPath;
-
-//        [self updateDoneButtonState];
-
+        
+        //        [self updateDoneButtonState];
+        
         if (imagePickerController.showsNumberOfSelectedAssets) {
             
             [self updateSelectionInfo];
-
+            
             if (selectedAssets.count == 1) {
                 // Show toolbar
                 [self.navigationController setToolbarHidden:NO animated:YES];
@@ -602,7 +684,7 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
             [imagePickerController.delegate qb_imagePickerController:imagePickerController didFinishPickingAssets:@[asset]];
         }
     }
-
+    
     if ([imagePickerController.delegate respondsToSelector:@selector(qb_imagePickerController:didSelectAsset:)]) {
         [imagePickerController.delegate qb_imagePickerController:imagePickerController didSelectAsset:asset];
     }
@@ -613,28 +695,28 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
     if (!self.imagePickerController.allowsMultipleSelection) {
         return;
     }
-
+    
     QBImagePickerController *imagePickerController = self.imagePickerController;
     NSMutableOrderedSet *selectedAssets = imagePickerController.selectedAssets;
-
+    
     PHAsset *asset = self.fetchResult[indexPath.item];
-
+    
     // Remove asset from set
     [selectedAssets removeObject:asset];
-
+    
     self.lastSelectedItemIndexPath = nil;
-
-//    [self updateDoneButtonState];
-
+    
+    //    [self updateDoneButtonState];
+    
     if (imagePickerController.showsNumberOfSelectedAssets) {
         [self updateSelectionInfo];
-
+        
         if (selectedAssets.count == 0) {
             // Hide toolbar
             [self.navigationController setToolbarHidden:YES animated:YES];
         }
     }
-
+    
     if ([imagePickerController.delegate respondsToSelector:@selector(qb_imagePickerController:didDeselectAsset:)]) {
         [imagePickerController.delegate qb_imagePickerController:imagePickerController didDeselectAsset:asset];
     }
@@ -651,9 +733,9 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
     } else {
         numberOfColumns = self.imagePickerController.numberOfColumnsInLandscape;
     }
-
+    
     CGFloat width = (CGRectGetWidth(self.view.frame) - 2.0 * (numberOfColumns - 1)) / numberOfColumns;
-
+    
     return CGSizeMake(width, width);
 }
 

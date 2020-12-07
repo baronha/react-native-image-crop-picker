@@ -11,10 +11,11 @@
 
 // ViewControllers
 #import "QBAlbumsViewController.h"
+#import "QBAssetsViewController.h"
 
 @interface QBImagePickerController ()
 
-@property (nonatomic, strong) UINavigationController *albumsNavigationController;
+@property (nonatomic, strong) UINavigationController *assetsNavigationController;
 
 @property (nonatomic, strong) NSBundle *assetBundle;
 
@@ -51,20 +52,18 @@
         if (bundlePath) {
             self.assetBundle = [NSBundle bundleWithPath:bundlePath];
         }
-        
-        [self setUpAlbumsViewController];
+        [self setUpAssetsViewController];
         
         // Set instance
-        QBAlbumsViewController *albumsViewController = (QBAlbumsViewController *)self.albumsNavigationController.topViewController;
-        albumsViewController.imagePickerController = self;
+        QBAssetsViewController *assetsViewController = (QBAssetsViewController *)self.assetsNavigationController.topViewController;
+        assetsViewController.imagePickerController = self;
     }
     
     return self;
 }
 
-- (void)setUpAlbumsViewController
+- (void)setUpAssetsViewController
 {
-    // Add QBAlbumsViewController as a child
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"QBImagePicker" bundle:self.assetBundle];
     UINavigationController *navigationController = [storyboard instantiateViewControllerWithIdentifier:@"QBAlbumsNavigationController"];
     
@@ -74,8 +73,8 @@
     [self.view addSubview:navigationController.view];
     
     [navigationController didMoveToParentViewController:self];
-    
-    self.albumsNavigationController = navigationController;
+        
+    self.assetsNavigationController = navigationController;
 }
 
 @end
