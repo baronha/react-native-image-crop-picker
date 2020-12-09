@@ -60,8 +60,6 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
 @property (nonatomic, strong) IBOutlet UIButton *doneButton;
 @property (nonatomic, strong) IBOutlet UIButton *backButton;
 
-@property (nonatomic, strong) NSString *albumTitle;
-
 @property (nonatomic, strong) PHFetchResult *fetchResult;
 
 @property (nonatomic, strong) PHCachingImageManager *imageManager;
@@ -69,6 +67,8 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
 
 @property (nonatomic, assign) BOOL disableScrollToBottom;
 @property (nonatomic, strong) NSIndexPath *lastSelectedItemIndexPath;
+@property (nonatomic, strong) UINavigationController *albumsNavigationController;
+
 
 @end
 
@@ -90,6 +90,7 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
 {
     [super viewWillAppear:animated];
     // Configure collection view
+    self.albumTitle = @"Hình ảnh";
     [self setUpNavigationBar];
     self.collectionView.allowsMultipleSelection = self.imagePickerController.allowsMultipleSelection;
     [self updateSelectionInfo];
@@ -122,9 +123,18 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
 - (void)setAssetCollection:(PHAssetCollection *)assetCollection
 {
     _assetCollection = assetCollection;
-    
     [self updateFetchRequest];
-    [self.collectionView reloadData];
+    
+    self.albumTitle = @"OK";
+    [self setUpNavigationBar];
+    
+//    dispatch_async(dispatch_get_main_queue(), ^{
+//        [self.collectionView reloadData];
+//    });
+
+//    [self.collectionView reloadData];
+//    [self.collectionView.collectionViewLayout invalidateLayout];
+//    [self.collectionView layoutSubviews];
 }
 
 - (PHCachingImageManager *)imageManager
@@ -153,42 +163,31 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
     }
 }
 
-- (IBAction)back:()sender
-{
-    if ([self.imagePickerController.delegate respondsToSelector:@selector(qb_imagePickerControllerDidCancel:)]) {
-        [self.imagePickerController.delegate qb_imagePickerControllerDidCancel:self.imagePickerController];
-    }
-}
-
 - (void)onBack:(UITapGestureRecognizer *)tapGesture {
     if ([self.imagePickerController.delegate respondsToSelector:@selector(qb_imagePickerControllerDidCancel:)]) {
         [self.imagePickerController.delegate qb_imagePickerControllerDidCancel:self.imagePickerController];
     }
 }
 
+- (void)chooseAlbum:(UITapGestureRecognizer *)tapGesture {
+    UIStoryboard *story = [UIStoryboard storyboardWithName:@"QBImagePicker" bundle:self.imagePickerController.assetBundle];
+    
+    UINavigationController *albumsViewController = [story instantiateViewControllerWithIdentifier:@"QBAlbumsNavigationController"];
+    
+    albumsViewController.modalPresentationStyle = UIModalPresentationFormSheet;
+    [self presentViewController:albumsViewController animated:YES completion:nil];
+}
+
+
+
 #pragma mark - TopNavigator
 
 -(void)setUpNavigationBar
 {
-    CGFloat safeAreaViewTop =  UIApplication.sharedApplication.statusBarFrame.size.height;
-    
-    UIView *safeAreaView = [[UIView alloc] initWithFrame:CGRectMake(0,0, self.view.frame.size.width, safeAreaViewTop)];
-    
-    safeAreaView.backgroundColor = [UIColor whiteColor];
-    
-    
-    UINavigationBar* navigationbar = [[UINavigationBar alloc] initWithFrame:CGRectMake(0,safeAreaViewTop, self.view.frame.size.width, 0)];
-    
-    //barStyle
-    navigationbar.tintColor = [UIColor whiteColor];
-    navigationbar.barTintColor = [UIColor whiteColor];
-    navigationbar.backgroundColor = [UIColor whiteColor];
-    
+    UINavigationBar* navigationbar = self.navigationController.navigationBar;
+
     UINavigationItem* navigationItem = [[UINavigationItem alloc] init];
-    _albumTitle = @"Hình ảnh";
-
-
-
+    
     if (@available(iOS 9.0, *)) {
         //handle subTitle
         UILabel *title = [[UILabel alloc]init];
@@ -199,7 +198,11 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
         [title setFont:[UIFont systemFontOfSize:17 weight:UIFontWeightSemibold]];
         [title sizeToFit];
         title.text = _albumTitle;
-        title.textColor = [UIColor blackColor];
+        if (@available(iOS 13.0, *)) {
+            title.textColor = [UIColor labelColor];
+        } else {
+            title.textColor = [UIColor blackColor];
+        }
 
         [subtitle setTextColor:[UIColor whiteColor]];
         [subtitle setFont:[UIFont systemFontOfSize:12]];
@@ -217,7 +220,7 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
         stackVw.userInteractionEnabled = true;
         UITapGestureRecognizer *tapGesture =
               [[UITapGestureRecognizer alloc] initWithTarget:self
-                                                      action:@selector(onBack:)];
+                                                      action:@selector(chooseAlbum:)];
         [stackVw addGestureRecognizer:tapGesture];
 
         navigationItem.titleView = stackVw;
@@ -225,24 +228,14 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
         navigationItem.title = _albumTitle;
     }
 
-
-    //cancelButton
     UIBarButtonItem *cancelItem = [[UIBarButtonItem alloc] initWithTitle:@"Thoát"
                                                                    style:UIBarButtonItemStylePlain
-                                                                  target:self.backButton
-                                                                  action:nil];
-    
+                                                                  target:self
+                                                                  action:@selector(onBack:)];
     cancelItem.tintColor = [UIColor systemPinkColor];
-    
     navigationItem.leftBarButtonItem = cancelItem;
-    
     navigationbar.items = [NSArray arrayWithObjects: navigationItem,nil];
     [navigationbar setItems:@[navigationItem]];
-    
-    [self.collectionView setContentInset: UIEdgeInsetsMake(safeAreaViewTop, 0, 0, 0)];
-    [self.view addSubview:safeAreaView];
-    [self.view insertSubview:navigationbar atIndex:2];
-    
 }
 
 #pragma mark - Toolbar
@@ -316,13 +309,13 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
         if ([self.imagePickerController.sortOrder isEqualToString:@"desc"]) {
             options.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"creationDate" ascending: NO]];
         }
-        //
-        //        NSLog(@"assetCollection: %@", self.assetCollection);
-        //
-        //        NSLog(@"fetchResult: %@", [PHAsset fetchAssetsInAssetCollection:self.assetCollection options:options]);
         
+        PHFetchResult *result = [PHAsset fetchAssetsInAssetCollection:self.assetCollection options:options];
         
-        self.fetchResult = [PHAsset fetchAssetsInAssetCollection:self.assetCollection options:options];
+        self.fetchResult = [result copy];
+        
+        NSLog(@"result: %@", result);
+        NSLog(@"self.assetCollection: %@", self.assetCollection);
         
         if ([self isAutoDeselectEnabled] && self.imagePickerController.selectedAssets.count > 0) {
             // Get index of previous selected asset
@@ -650,6 +643,7 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
     QBImagePickerController *imagePickerController = self.imagePickerController;
     NSMutableOrderedSet *selectedAssets = imagePickerController.selectedAssets;
     
+    
     PHAsset *asset = self.fetchResult[indexPath.item];
     
     if (imagePickerController.allowsMultipleSelection) {
@@ -665,6 +659,11 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
         
         // Add asset to set
         [selectedAssets addObject:asset];
+        
+        //setBadge
+        QBAssetCell *cell = (QBAssetCell *)[collectionView cellForItemAtIndexPath:indexPath];
+        NSUInteger i = [ selectedAssets indexOfObject: asset ];
+        cell.badge.text = [NSString stringWithFormat:@"%ld", i + 1];
         
         self.lastSelectedItemIndexPath = indexPath;
         
@@ -703,11 +702,18 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
     
     // Remove asset from set
     [selectedAssets removeObject:asset];
-    
+    //setBadge
+    for (int i = 0;  i < [selectedAssets count]; i++){
+        PHAsset *item = (PHAsset *)selectedAssets[i];
+        
+//        QBAssetCell *cell = (QBAssetCell *)[collectionView cellForItemAtIndexPath:(NSIndexPath *)];
+        
+        NSLog(@"cell: %@", cell);
+
+    }
+  
     self.lastSelectedItemIndexPath = nil;
-    
-    //    [self updateDoneButtonState];
-    
+        
     if (imagePickerController.showsNumberOfSelectedAssets) {
         [self updateSelectionInfo];
         

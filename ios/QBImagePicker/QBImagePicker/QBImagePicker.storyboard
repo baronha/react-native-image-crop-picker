@@ -13,7 +13,7 @@
             <objects>
                 <tableViewController storyboardIdentifier="QBAlbumsViewController" id="QL5-wR-LYt" customClass="QBAlbumsViewController" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="86" sectionHeaderHeight="22" sectionFooterHeight="22" id="66K-TS-Yoc">
-                        <rect key="frame" x="0.0" y="0.0" width="414" height="842"/>
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <prototypes>
@@ -97,7 +97,7 @@
                             <outlet property="delegate" destination="QL5-wR-LYt" id="gZH-IY-ikI"/>
                         </connections>
                     </tableView>
-                    <navigationItem key="navigationItem" title="Photos" id="r7D-Kp-3yC">
+                    <navigationItem key="navigationItem" title="Photos" largeTitleDisplayMode="always" id="r7D-Kp-3yC">
                         <barButtonItem key="leftBarButtonItem" systemItem="cancel" id="s1M-VA-CeM">
                             <connections>
                                 <action selector="cancel:" destination="QL5-wR-LYt" id="l9K-7e-2qt"/>
@@ -107,7 +107,7 @@
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Qu9-YY-dvn" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="967" y="1575"/>
+            <point key="canvasLocation" x="1767" y="1575"/>
         </scene>
         <!--Album Title-->
         <scene sceneID="ozY-oO-5JA">
@@ -183,7 +183,7 @@
                                                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="m99-yj-HSc" customClass="QBCheckmarkView">
                                                     <rect key="frame" x="45.5" y="8" width="24" height="24"/>
                                                     <subviews>
-                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="center" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" restorationIdentifier="badge" text="19" textAlignment="center" lineBreakMode="tailTruncation" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="8fk-bI-yZt">
+                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="center" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" restorationIdentifier="badge" text="" textAlignment="center" lineBreakMode="tailTruncation" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="8fk-bI-yZt">
                                                             <rect key="frame" x="0.0" y="0.0" width="24" height="24"/>
                                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                             <fontDescription key="fontDescription" type="boldSystem" pointSize="13"/>
@@ -198,7 +198,7 @@
                                                     </constraints>
                                                 </view>
                                             </subviews>
-                                            <color key="backgroundColor" red="1" green="1" blue="1" alpha="0.0" colorSpace="custom" customColorSpace="sRGB"/>
+                                            <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="0.20000000000000001" colorSpace="custom" customColorSpace="sRGB"/>
                                             <constraints>
                                                 <constraint firstAttribute="top" secondItem="m99-yj-HSc" secondAttribute="top" constant="-8" id="Hyd-Pf-4Ni"/>
                                                 <constraint firstAttribute="right" secondItem="m99-yj-HSc" secondAttribute="right" constant="8" id="aQv-HN-dQG"/>
@@ -254,22 +254,7 @@
                             <outlet property="delegate" destination="QiH-NZ-ZGN" id="0SZ-eY-tkn"/>
                         </connections>
                     </collectionView>
-                    <navigationItem key="navigationItem" title="Album Title" id="wKf-eb-U1x">
-                        <barButtonItem key="leftBarButtonItem" title="Thoát" style="done" id="3n3-hG-h8T">
-                            <color key="tintColor" red="1" green="0.32050988692861526" blue="0.37294794523005736" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                            <connections>
-                                <action selector="back:" destination="QiH-NZ-ZGN" id="3L3-BR-x9u"/>
-                            </connections>
-                        </barButtonItem>
-                        <barButtonItem key="rightBarButtonItem" title="Chọn Albums" id="nai-ZV-lR8">
-                            <color key="tintColor" systemColor="labelColor"/>
-                            <connections>
-                                <segue destination="QL5-wR-LYt" kind="popoverPresentation" popoverAnchorBarButtonItem="nai-ZV-lR8" id="b0E-JO-u6e">
-                                    <popoverArrowDirection key="popoverArrowDirection" up="YES" down="YES" left="YES" right="YES"/>
-                                </segue>
-                            </connections>
-                        </barButtonItem>
-                    </navigationItem>
+                    <navigationItem key="navigationItem" title="Album Title" id="wKf-eb-U1x"/>
                 </collectionViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="qBb-2Q-SxP" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
@@ -278,7 +263,7 @@
         <!--Navigation Controller-->
         <scene sceneID="TBV-v4-1AQ">
             <objects>
-                <navigationController storyboardIdentifier="QBAlbumsNavigationController" id="8Dq-FL-Kai" sceneMemberID="viewController">
+                <navigationController storyboardIdentifier="QBAssetsNavigationController" id="8Dq-FL-Kai" sceneMemberID="viewController">
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="Whc-Ry-EBq">
                         <rect key="frame" x="0.0" y="44" width="414" height="44"/>
@@ -294,6 +279,24 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Ag3-Vu-ohc" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="166" y="852"/>
+        </scene>
+        <!--Navigation Controller-->
+        <scene sceneID="HpG-Nw-hc6">
+            <objects>
+                <navigationController storyboardIdentifier="QBAlbumsNavigationController" automaticallyAdjustsScrollViewInsets="NO" id="AdY-l3-7Kd" sceneMemberID="viewController">
+                    <toolbarItems/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="45a-mC-lOh">
+                        <rect key="frame" x="0.0" y="44" width="414" height="44"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <nil name="viewControllers"/>
+                    <connections>
+                        <segue destination="QL5-wR-LYt" kind="relationship" relationship="rootViewController" id="PDc-zs-s5Z"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="1rM-HG-mud" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="165" y="1575"/>
         </scene>
     </scenes>
     <color key="tintColor" systemColor="labelColor"/>

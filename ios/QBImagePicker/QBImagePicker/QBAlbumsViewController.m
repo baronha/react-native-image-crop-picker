@@ -35,21 +35,10 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
 
 @implementation QBAlbumsViewController
 
-- (instancetype)init
-{
-    self = [super init];
-    
-    if (self) {
-        NSLog(@"init");
-    }
-    return self;
-}
-
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    
-    [self setUpToolbarItems];
+    [self setUpNavigationBar];
     
     // Fetch user albums and smart albums
     PHFetchResult *smartAlbums = [PHAssetCollection fetchAssetCollectionsWithType:PHAssetCollectionTypeSmartAlbum subtype:PHAssetCollectionSubtypeAny options:nil];
@@ -65,12 +54,6 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
 - (void)viewWillAppear:(BOOL)animated
 {
     [super viewWillAppear:animated];
-    
-    // Configure navigation item
-    self.navigationItem.title = NSLocalizedStringFromTableInBundle(@"albums.title", @"QBImagePicker", self.imagePickerController.assetBundle, nil);
-    self.navigationItem.prompt = self.imagePickerController.prompt;
-
-    [self updateSelectionInfo];
 }
 
 - (void)dealloc
@@ -84,10 +67,11 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
 {
+    NSLog(@"CLICK");
     QBAssetsViewController *assetsViewController = segue.destinationViewController;
     assetsViewController.imagePickerController = self.imagePickerController;
     assetsViewController.assetCollection = self.assetCollections[self.tableView.indexPathForSelectedRow.row];
-//    NSLog(@"row: %@",self.assetCollections[self.tableView.indexPathForSelectedRow.row]);
+    NSLog(@"row: %@",self.assetCollections[self.tableView.indexPathForSelectedRow.row]);
 }
 
 
@@ -108,53 +92,57 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
     }
 }
 
-
-#pragma mark - Toolbar
-
-- (void)setUpToolbarItems
+-(void)onBack:(UITapGestureRecognizer *)tapGesture
 {
-    // Space
-    UIBarButtonItem *leftSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:NULL];
-    UIBarButtonItem *rightSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:NULL];
-    
-    // Info label
-    NSDictionary *attributes = @{ NSForegroundColorAttributeName: [UIColor blackColor] };
-    UIBarButtonItem *infoButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"" style:UIBarButtonItemStylePlain target:nil action:NULL];
-    infoButtonItem.enabled = NO;
-    [infoButtonItem setTitleTextAttributes:attributes forState:UIControlStateNormal];
-    [infoButtonItem setTitleTextAttributes:attributes forState:UIControlStateDisabled];
-    
-    self.toolbarItems = @[leftSpace, infoButtonItem, rightSpace];
+    [self back];
 }
 
-- (void)updateSelectionInfo
+-(void)back
 {
-    NSMutableOrderedSet *selectedAssets = self.imagePickerController.selectedAssets;
-    NSLog(@"selected: %@",  self.imagePickerController);
-    if (selectedAssets.count > 0) {
-        NSBundle *bundle = self.imagePickerController.assetBundle;
-        NSString *format;
-        if (selectedAssets.count > 1) {
-            format = NSLocalizedStringFromTableInBundle(@"assets.toolbar.items-selected", @"QBImagePicker", bundle, nil);
-        } else {
-            format = NSLocalizedStringFromTableInBundle(@"assets.toolbar.item-selected", @"QBImagePicker", bundle, nil);
-        }
+    [self dismissViewControllerAnimated:YES completion:nil];
+}
+
+
+#pragma mark - NavigationBar
+-(void)setUpNavigationBar
+{
+    UINavigationBar* navigationbar = self.navigationController.navigationBar;
+    UINavigationItem* navigationItem = [[UINavigationItem alloc] init];
+    
+    if (@available(iOS 11.0, *)) {
+        navigationbar.prefersLargeTitles = true;
         
-        NSString *title = [NSString stringWithFormat:format, selectedAssets.count];
-        [(UIBarButtonItem *)self.toolbarItems[1] setTitle:title];
-    } else {
-        [(UIBarButtonItem *)self.toolbarItems[1] setTitle:@""];
     }
+    if (@available(iOS 13.0, *)) {
+        navigationbar.largeContentTitle = @"Albums";
+    }
+    
+    navigationItem.title = @"Albums";
+    
+    UIBarButtonItem *cancelItem = [[UIBarButtonItem alloc] initWithTitle:@"Đóng"
+                                                                   style:UIBarButtonItemStyleDone
+                                                                  target:self
+                                                                  action:@selector(onBack:)];
+    cancelItem.tintColor = [UIColor systemPinkColor];
+    navigationItem.rightBarButtonItem = cancelItem;
+    navigationbar.items = [NSArray arrayWithObjects: navigationItem,nil];
+    [navigationbar setItems:@[navigationItem]];
 }
-
-
 #pragma mark - Fetching Asset Collections
 
 - (void)updateAssetCollections
 {
-    NSLog(@"UPDATE");
     // Filter albums
-    NSArray *assetCollectionSubtypes = self.imagePickerController.assetCollectionSubtypes;
+    NSArray *initAssets = @[
+        @(PHAssetCollectionSubtypeSmartAlbumUserLibrary),
+        @(PHAssetCollectionSubtypeSmartAlbumVideos),
+        @(PHAssetCollectionSubtypeSmartAlbumPanoramas),
+        @(PHAssetCollectionSubtypeSmartAlbumFavorites),
+    ];
+    NSMutableArray *assetCollectionSubtypes = [[NSMutableArray alloc] initWithArray:initAssets];
+    if (@available(iOS 9, *)) {
+        [assetCollectionSubtypes addObject:@(PHAssetCollectionSubtypeSmartAlbumScreenshots)];
+    }
     NSMutableDictionary *smartAlbums = [NSMutableDictionary dictionaryWithCapacity:assetCollectionSubtypes.count];
     NSMutableArray *userAlbums = [NSMutableArray array];
     
@@ -174,7 +162,7 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
     }
     
     NSMutableArray *assetCollections = [NSMutableArray array];
-
+    
     // Fetch smart albums
     for (NSNumber *assetCollectionSubtype in assetCollectionSubtypes) {
         NSArray *collections = smartAlbums[assetCollectionSubtype];
@@ -183,7 +171,6 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
             [assetCollections addObjectsFromArray:collections];
         }
     }
-    
     // Fetch user albums
     [userAlbums enumerateObjectsUsingBlock:^(PHAssetCollection *assetCollection, NSUInteger index, BOOL *stop) {
         [assetCollections addObject:assetCollection];
@@ -304,10 +291,10 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
                                contentMode:PHImageContentModeAspectFill
                                    options:nil
                              resultHandler:^(UIImage *result, NSDictionary *info) {
-                                 if (cell.tag == indexPath.row) {
-                                     cell.imageView3.image = result;
-                                 }
-                             }];
+            if (cell.tag == indexPath.row) {
+                cell.imageView3.image = result;
+            }
+        }];
     } else {
         cell.imageView3.hidden = YES;
     }
@@ -320,10 +307,10 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
                                contentMode:PHImageContentModeAspectFill
                                    options:nil
                              resultHandler:^(UIImage *result, NSDictionary *info) {
-                                 if (cell.tag == indexPath.row) {
-                                     cell.imageView2.image = result;
-                                 }
-                             }];
+            if (cell.tag == indexPath.row) {
+                cell.imageView2.image = result;
+            }
+        }];
     } else {
         cell.imageView2.hidden = YES;
     }
@@ -334,10 +321,10 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
                                contentMode:PHImageContentModeAspectFill
                                    options:nil
                              resultHandler:^(UIImage *result, NSDictionary *info) {
-                                 if (cell.tag == indexPath.row) {
-                                     cell.imageView1.image = result;
-                                 }
-                             }];
+            if (cell.tag == indexPath.row) {
+                cell.imageView1.image = result;
+            }
+        }];
     }
     
     if (fetchResult.count == 0) {
@@ -358,6 +345,16 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
     cell.countLabel.text = [NSString stringWithFormat:@"%lu", (long)fetchResult.count];
     
     return cell;
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    UINavigationController *navigationController = [self.storyboard instantiateViewControllerWithIdentifier:@"QBAssetsNavigationController"];
+    
+    QBAssetsViewController *assetsViewController = (QBAssetsViewController *)navigationController.topViewController;
+
+    assetsViewController.assetCollection = self.assetCollections[indexPath.row];
+    [self back];
 }
 
 

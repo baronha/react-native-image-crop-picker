@@ -24,6 +24,7 @@
     self.overlayView.hidden = !(selected && self.showsOverlayViewWhenSelected);
     self.overlayView.layer.borderWidth = 3;
     self.overlayView.layer.borderColor = [UIColor colorWithRed:255.0 / 255.0 green:175.0 / 255.0 blue:0.0 / 255.0 alpha:1.0].CGColor;
+    self.badge.textColor = [UIColor whiteColor];
 }
 
 @end

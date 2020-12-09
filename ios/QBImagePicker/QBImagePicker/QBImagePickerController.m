@@ -29,17 +29,7 @@
     
     if (self) {
         // Set default values
-        if (@available(iOS 9, *)) {
-            self.assetCollectionSubtypes = @[
-                @(PHAssetCollectionSubtypeSmartAlbumUserLibrary),
-                @(PHAssetCollectionSubtypeSmartAlbumVideos),
-                @(PHAssetCollectionSubtypeSmartAlbumPanoramas),
-                @(PHAssetCollectionSubtypeSmartAlbumFavorites),
-                @(PHAssetCollectionSubtypeSmartAlbumScreenshots),
-            ];
-        } else {
-            // Fallback on earlier versions
-        }
+        
         self.minimumNumberOfSelection = 1;
         self.numberOfColumnsInPortrait = 3;
         self.numberOfColumnsInLandscape = 7;
@@ -65,7 +55,7 @@
 - (void)setUpAssetsViewController
 {
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"QBImagePicker" bundle:self.assetBundle];
-    UINavigationController *navigationController = [storyboard instantiateViewControllerWithIdentifier:@"QBAlbumsNavigationController"];
+    UINavigationController *navigationController = [storyboard instantiateViewControllerWithIdentifier:@"QBAssetsNavigationController"];
     
     [self addChildViewController:navigationController];
     
@@ -73,7 +63,7 @@
     [self.view addSubview:navigationController.view];
     
     [navigationController didMoveToParentViewController:self];
-        
+    
     self.assetsNavigationController = navigationController;
 }
 
