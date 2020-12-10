@@ -18,6 +18,7 @@
 @property (nonatomic, copy) NSArray *fetchResults;
 @property (nonatomic, copy) NSArray *assetCollections;
 @property (nonatomic, copy) NSString *albumTitle;
+@property (nonatomic, assign) BOOL haveVideo;
 
 
 @end

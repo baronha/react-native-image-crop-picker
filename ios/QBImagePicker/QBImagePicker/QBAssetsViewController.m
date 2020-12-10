@@ -78,7 +78,7 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
 {
     [super viewDidLoad];
     
-    [self updateFetchRequest];
+    [self initAssets];
     [self setUpToolbarItems];
     [self resetCachedAssets];
     
@@ -93,7 +93,6 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
     self.albumTitle = @"Hình ảnh";
     [self setUpNavigationBar];
     self.collectionView.allowsMultipleSelection = self.imagePickerController.allowsMultipleSelection;
-    [self updateSelectionInfo];
     [self.collectionView reloadData];
 }
 
@@ -124,17 +123,6 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
 {
     _assetCollection = assetCollection;
     [self updateFetchRequest];
-    
-    self.albumTitle = @"OK";
-    [self setUpNavigationBar];
-    
-//    dispatch_async(dispatch_get_main_queue(), ^{
-//        [self.collectionView reloadData];
-//    });
-
-//    [self.collectionView reloadData];
-//    [self.collectionView.collectionViewLayout invalidateLayout];
-//    [self.collectionView layoutSubviews];
 }
 
 - (PHCachingImageManager *)imageManager
@@ -155,7 +143,7 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
 
 #pragma mark - Actions
 
-- (IBAction)done:(id)sender
+- (void)done:(UITapGestureRecognizer *)tapGesture
 {
     if ([self.imagePickerController.delegate respondsToSelector:@selector(qb_imagePickerController:didFinishPickingAssets:)]) {
         [self.imagePickerController.delegate qb_imagePickerController:self.imagePickerController
@@ -185,14 +173,14 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
 -(void)setUpNavigationBar
 {
     UINavigationBar* navigationbar = self.navigationController.navigationBar;
-
+    
     UINavigationItem* navigationItem = [[UINavigationItem alloc] init];
     
     if (@available(iOS 9.0, *)) {
         //handle subTitle
         UILabel *title = [[UILabel alloc]init];
         UILabel *subtitle = [[UILabel alloc]init];
-
+        
         [title setFont:[UIFont systemFontOfSize:12]];
         [title setTextColor:[UIColor whiteColor]];
         [title setFont:[UIFont systemFontOfSize:17 weight:UIFontWeightSemibold]];
@@ -203,7 +191,7 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
         } else {
             title.textColor = [UIColor blackColor];
         }
-
+        
         [subtitle setTextColor:[UIColor whiteColor]];
         [subtitle setFont:[UIFont systemFontOfSize:12]];
         [subtitle setTextAlignment:NSTextAlignmentCenter];
@@ -219,15 +207,15 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
         [stackVw setFrame:CGRectMake(0, 0, MAX(title.frame.size.width, subtitle.frame.size.width), 0)];
         stackVw.userInteractionEnabled = true;
         UITapGestureRecognizer *tapGesture =
-              [[UITapGestureRecognizer alloc] initWithTarget:self
-                                                      action:@selector(chooseAlbum:)];
+        [[UITapGestureRecognizer alloc] initWithTarget:self
+                                                action:@selector(chooseAlbum:)];
         [stackVw addGestureRecognizer:tapGesture];
-
+        
         navigationItem.titleView = stackVw;
     }else{
         navigationItem.title = _albumTitle;
     }
-
+    
     UIBarButtonItem *cancelItem = [[UIBarButtonItem alloc] initWithTitle:@"Thoát"
                                                                    style:UIBarButtonItemStylePlain
                                                                   target:self
@@ -242,80 +230,92 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
 
 - (void)setUpToolbarItems
 {
-    // Space
-    UIBarButtonItem *leftSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:NULL];
-    UIBarButtonItem *rightSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:NULL];
+//    // Space
+//    UIBarButtonItem *leftSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:NULL];
+//    UIBarButtonItem *rightSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:NULL];
     
-    // Info label
-    UIColor *labelColor = [UIColor blackColor];
-    if (@available(iOS 13.0, *)) {
-        labelColor = [UIColor labelColor];
+    //tap
+    UITapGestureRecognizer *doneTap =
+      [[UITapGestureRecognizer alloc] initWithTarget:self
+                                              action:@selector(done:)];
+    
+    UIView *buttonDoneView = [[UIView alloc] initWithFrame:CGRectMake(0, 24,0 , 48)];
+    
+    UILabel *titleButtonDone = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, [[UIScreen mainScreen] applicationFrame].size.width, 48)];
+
+    titleButtonDone.text = @"Hoàn tất";
+    [titleButtonDone setFont:[UIFont systemFontOfSize:12]];
+    [titleButtonDone setTextColor:[UIColor whiteColor]];
+    if (@available(iOS 8.2, *)) {
+        [titleButtonDone setFont:[UIFont systemFontOfSize:14 weight:UIFontWeightBold]];
     }
-    NSDictionary *attributes = @{ NSForegroundColorAttributeName: labelColor };
-    UIBarButtonItem *infoButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"" style:UIBarButtonItemStylePlain target:nil action:NULL];
-    infoButtonItem.enabled = NO;
-    infoButtonItem.title = @"Xong";
-    [infoButtonItem setTitleTextAttributes:attributes forState:UIControlStateNormal];
-    [infoButtonItem setTitleTextAttributes:attributes forState:UIControlStateDisabled];
+    titleButtonDone.textAlignment = NSTextAlignmentCenter;
+    //view
+    buttonDoneView.layer.backgroundColor = [UIColor colorWithRed:255.0 / 255.0 green:175.0 / 255.0 blue:0.0 / 255.0 alpha:1.0].CGColor;
+    buttonDoneView.layer.cornerRadius = 6;
     
-    self.toolbarItems = @[leftSpace, infoButtonItem, rightSpace];
+    [buttonDoneView addSubview:titleButtonDone];
+    [buttonDoneView addGestureRecognizer:doneTap];
+    
+    
+    UIBarButtonItem *buttonDone = [[UIBarButtonItem alloc] initWithCustomView:buttonDoneView];
+
+    self.toolbarItems = @[buttonDone];
 }
 
-- (void)updateSelectionInfo
-{
-    NSMutableOrderedSet *selectedAssets = self.imagePickerController.selectedAssets;
-    
-    if (selectedAssets.count > 0) {
-        NSBundle *bundle = self.imagePickerController.assetBundle;
-        NSString *format;
-        if (selectedAssets.count > 1) {
-            format = NSLocalizedStringFromTableInBundle(@"assets.toolbar.items-selected", @"QBImagePicker", bundle, nil);
-        } else {
-            format = NSLocalizedStringFromTableInBundle(@"assets.toolbar.item-selected", @"QBImagePicker", bundle, nil);
-        }
-        
-        NSString *title = [NSString stringWithFormat:format, selectedAssets.count];
-        [(UIBarButtonItem *)self.toolbarItems[1] setTitle:title];
-    } else {
-        [(UIBarButtonItem *)self.toolbarItems[1] setTitle:@""];
-    }
-}
+//- (void)updateSelectionInfo
+//{
+//    NSMutableOrderedSet *selectedAssets = self.imagePickerController.selectedAssets;
+//
+//    if (selectedAssets.count > 0) {
+//        NSBundle *bundle = self.imagePickerController.assetBundle;
+//        NSString *format;
+//        if (selectedAssets.count > 1) {
+//            format = NSLocalizedStringFromTableInBundle(@"assets.toolbar.items-selected", @"QBImagePicker", bundle, nil);
+//        } else {
+//            format = NSLocalizedStringFromTableInBundle(@"assets.toolbar.item-selected", @"QBImagePicker", bundle, nil);
+//        }
+//
+//        NSString *title = [NSString stringWithFormat:format, selectedAssets.count];
+//        [(UIBarButtonItem *)self.toolbarItems[1] setTitle:title];
+//    } else {
+//        [(UIBarButtonItem *)self.toolbarItems[1] setTitle:@""];
+//    }
+//}
 
 
 #pragma mark - Fetching Assets
+-(PHFetchOptions *) handleOptions
+{
+    PHFetchOptions *options = [PHFetchOptions new];
+    
+    
+    
+    switch (self.imagePickerController.mediaType) {
+        case QBImagePickerMediaTypeImage:
+            options.predicate = [NSPredicate predicateWithFormat:@"mediaType == %ld", PHAssetMediaTypeImage];
+            break;
+            
+        case QBImagePickerMediaTypeVideo:
+            options.predicate = [NSPredicate predicateWithFormat:@"mediaType == %ld", PHAssetMediaTypeVideo];
+            break;
+            
+        default:
+            options.predicate = [NSPredicate predicateWithFormat:@"duration < 60"];
+            break;
+    }
+    
+    options.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"creationDate" ascending: NO]];
+    
+    return options;
+}
 
 - (void)updateFetchRequest
 {
-    PHFetchOptions *options = [PHFetchOptions new];
     if (self.assetCollection) {
-        switch (self.imagePickerController.mediaType) {
-            case QBImagePickerMediaTypeImage:
-                options.predicate = [NSPredicate predicateWithFormat:@"mediaType == %ld", PHAssetMediaTypeImage];
-                break;
-                
-            case QBImagePickerMediaTypeVideo:
-                options.predicate = [NSPredicate predicateWithFormat:@"mediaType == %ld", PHAssetMediaTypeVideo];
-                break;
-                
-            default:
-                break;
-        }
+        PHFetchOptions *options = (PHFetchOptions *)self.handleOptions;
         
-        
-        if ([self.imagePickerController.sortOrder isEqualToString:@"asc"]) {
-            options.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"creationDate" ascending: YES]];
-        }
-        
-        if ([self.imagePickerController.sortOrder isEqualToString:@"desc"]) {
-            options.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"creationDate" ascending: NO]];
-        }
-        
-        PHFetchResult *result = [PHAsset fetchAssetsInAssetCollection:self.assetCollection options:options];
-        
-        self.fetchResult = [result copy];
-        
-        NSLog(@"result: %@", result);
-        NSLog(@"self.assetCollection: %@", self.assetCollection);
+        self.fetchResult = [PHAsset fetchAssetsInAssetCollection:self.assetCollection options:options];
         
         if ([self isAutoDeselectEnabled] && self.imagePickerController.selectedAssets.count > 0) {
             // Get index of previous selected asset
@@ -324,12 +324,18 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
             self.lastSelectedItemIndexPath = [NSIndexPath indexPathForItem:assetIndex inSection:0];
         }
     } else {
-        options.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"creationDate" ascending: NO]];
-        PHFetchResult *result = [PHAsset fetchAssetsWithOptions:options];
-        self.fetchResult = [result copy];
+        self.fetchResult = nil;
     }
 }
 
+
+-(void)initAssets
+{
+    PHFetchOptions *options = self.handleOptions;
+    
+    PHFetchResult *result = [PHAsset fetchAssetsWithOptions:options];
+    self.fetchResult = [result copy];
+}
 
 #pragma mark - Checking for Selection Limit
 
@@ -349,10 +355,6 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
     return NO;
 }
 
-//- (void)updateDoneButtonState
-//{
-//    self.doneButton.enabled = [self isMinimumSelectionLimitFulfilled];
-//}
 
 
 #pragma mark - Asset Caching
@@ -556,9 +558,12 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
     // Selection state
     if ([self.imagePickerController.selectedAssets containsObject:asset]) {
         [cell setSelected:YES];
+        QBImagePickerController *imagePickerController = self.imagePickerController;
+        NSMutableOrderedSet *selectedAssets = imagePickerController.selectedAssets;
+        NSUInteger i = [ selectedAssets indexOfObject: asset ];
+        cell.badge.text = [NSString stringWithFormat:@"%ld", i + 1];
         [collectionView selectItemAtIndexPath:indexPath animated:NO scrollPosition:UICollectionViewScrollPositionNone];
     }
-    
     return cell;
 }
 
@@ -624,10 +629,39 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
 
 #pragma mark - UICollectionViewDelegate
 
+- (BOOL)allowSelectVideo:(PHAsset *)asset
+{
+    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Thông báo"
+                                                    message:@"Pety chỉ hỗ trợ đăng một Video cho một bài đăng."
+                                                   delegate:self
+                                          cancelButtonTitle:@"Đồng ý"
+                                          otherButtonTitles:nil];
+    if(_haveVideo) {
+        [alert show];
+        return NO;
+    }
+    QBImagePickerController *imagePickerController = self.imagePickerController;
+    NSMutableOrderedSet *selectedAssets = imagePickerController.selectedAssets;
+    
+    for(int i = 0;  i < selectedAssets.count; i++){
+        PHAsset *item = selectedAssets[i];
+        if(item.mediaType == PHAssetMediaTypeVideo){
+            [alert show];
+            return NO;
+        }
+    }
+    return YES;
+}
+
 - (BOOL)collectionView:(UICollectionView *)collectionView shouldSelectItemAtIndexPath:(NSIndexPath *)indexPath
 {
+    PHAsset *asset = self.fetchResult[indexPath.item];
+    if(asset.mediaType == PHAssetMediaTypeVideo){
+        return [self allowSelectVideo: asset];
+    }
+    
     if ([self.imagePickerController.delegate respondsToSelector:@selector(qb_imagePickerController:shouldSelectAsset:)]) {
-        PHAsset *asset = self.fetchResult[indexPath.item];
+       
         return [self.imagePickerController.delegate qb_imagePickerController:self.imagePickerController shouldSelectAsset:asset];
     }
     
@@ -642,8 +676,6 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
 {
     QBImagePickerController *imagePickerController = self.imagePickerController;
     NSMutableOrderedSet *selectedAssets = imagePickerController.selectedAssets;
-    
-    
     PHAsset *asset = self.fetchResult[indexPath.item];
     
     if (imagePickerController.allowsMultipleSelection) {
@@ -656,7 +688,6 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
                 [collectionView deselectItemAtIndexPath:self.lastSelectedItemIndexPath animated:NO];
             }
         }
-        
         // Add asset to set
         [selectedAssets addObject:asset];
         
@@ -667,17 +698,10 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
         
         self.lastSelectedItemIndexPath = indexPath;
         
-        //        [self updateDoneButtonState];
-        
-        if (imagePickerController.showsNumberOfSelectedAssets) {
-            
-            [self updateSelectionInfo];
-            
-            if (selectedAssets.count == 1) {
-                // Show toolbar
-                [self.navigationController setToolbarHidden:NO animated:YES];
-            }
+        if (imagePickerController.showsNumberOfSelectedAssets && selectedAssets.count == 1) {
+            [self.navigationController setToolbarHidden:NO animated:YES];
         }
+        
     } else {
         if ([imagePickerController.delegate respondsToSelector:@selector(qb_imagePickerController:didFinishPickingAssets:)]) {
             [imagePickerController.delegate qb_imagePickerController:imagePickerController didFinishPickingAssets:@[asset]];
@@ -702,25 +726,12 @@ static CGSize CGSizeScale(CGSize size, CGFloat scale) {
     
     // Remove asset from set
     [selectedAssets removeObject:asset];
-    //setBadge
-    for (int i = 0;  i < [selectedAssets count]; i++){
-        PHAsset *item = (PHAsset *)selectedAssets[i];
-        
-//        QBAssetCell *cell = (QBAssetCell *)[collectionView cellForItemAtIndexPath:(NSIndexPath *)];
-        
-        NSLog(@"cell: %@", cell);
-
-    }
-  
+    [self.collectionView reloadData];
+    
     self.lastSelectedItemIndexPath = nil;
-        
-    if (imagePickerController.showsNumberOfSelectedAssets) {
-        [self updateSelectionInfo];
-        
-        if (selectedAssets.count == 0) {
-            // Hide toolbar
-            [self.navigationController setToolbarHidden:YES animated:YES];
-        }
+    
+    if (imagePickerController.showsNumberOfSelectedAssets && selectedAssets.count == 0) {
+        [self.navigationController setToolbarHidden:YES animated:YES];
     }
     
     if ([imagePickerController.delegate respondsToSelector:@selector(qb_imagePickerController:didDeselectAsset:)]) {
